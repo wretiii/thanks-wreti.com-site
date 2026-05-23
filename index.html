@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Toast</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #000;
+      overflow: hidden;
+    }
+
+    /* ── SCREEN WRAPPER ── */
+    .screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    .screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.97);
+    }
+
+    /* ══════════════════════════════════════
+       SCREEN 1 — "How would you like to receive your receipt?"
+       ══════════════════════════════════════ */
+    #receipt {
+      background: #000;
+      justify-content: space-between;
+    }
+
+    /* Android status bar */
+    .status-bar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 6px 12px 0;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .status-bar svg {
+      fill: #fff;
+    }
+
+    .status-time {
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    /* Main content area */
+    .receipt-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 16px 24px;
+      gap: 24px;
+    }
+
+    .receipt-heading {
+      color: #fff;
+      font-size: clamp(18px, 4vw, 26px);
+      font-weight: 400;
+      text-align: center;
+      line-height: 1.35;
+      max-width: 520px;
+    }
+
+    /* Button group */
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      width: 100%;
+      max-width: 680px;
+    }
+
+    .rcpt-btn {
+      background: #1e1e1e;
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      font-size: clamp(16px, 3.5vw, 22px);
+      font-weight: 400;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 0 20px;
+      height: 72px;
+      width: 100%;
+      transition: background 0.1s;
+    }
+
+    .rcpt-btn:active {
+      background: #2a2a2a;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 6px;
+      width: 100%;
+    }
+
+    .btn-row .rcpt-btn {
+      flex: 1;
+    }
+
+    .rcpt-btn svg {
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      stroke: #fff;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* Legal footer */
+    .legal-footer {
+      text-align: center;
+      font-size: 11px;
+      color: #555;
+      padding: 10px 24px 8px;
+      line-height: 1.5;
+      flex-shrink: 0;
+    }
+
+    .legal-footer a {
+      color: #e8320a;
+      text-decoration: none;
+    }
+
+    /* Red Toast accent bar */
+    .toast-bar {
+      height: 4px;
+      background: #e8320a;
+      flex-shrink: 0;
+    }
+
+    /* Android navigation bar */
+    .android-nav {
+      background: #000;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-evenly;
+      flex-shrink: 0;
+      padding: 0 40px;
+    }
+
+    .nav-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.7;
+    }
+
+    .nav-btn svg {
+      fill: #fff;
+      stroke: none;
+    }
+
+    /* ══════════════════════════════════════
+       SCREEN 2 — Nice Message
+       ══════════════════════════════════════ */
+    #message {
+      background: linear-gradient(160deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+      justify-content: center;
+      align-items: center;
+      padding: 32px 28px;
+    }
+
+    .msg-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      max-width: 380px;
+      width: 100%;
+    }
+
+    .msg-emoji {
+      font-size: 72px;
+      margin-bottom: 24px;
+      animation: pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+
+    @keyframes pop {
+      from { transform: scale(0); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+
+    .msg-heading {
+      font-size: 30px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+      margin-bottom: 20px;
+      animation: fadeUp 0.5s 0.1s ease both;
+    }
+
+    .msg-body {
+      font-size: 17px;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.65;
+      margin-bottom: 36px;
+      animation: fadeUp 0.5s 0.2s ease both;
+    }
+
+    .msg-from {
+      display: inline-block;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: #fff;
+      border-radius: 999px;
+      padding: 10px 24px;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      animation: fadeUp 0.5s 0.3s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── SCREEN 1: Receipt type selection ── -->
+  <div class="screen" id="receipt">
+
+    <!-- Android status bar -->
+    <div class="status-bar">
+      <!-- WiFi -->
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="none">
+        <path d="M1.5 8.5a17 17 0 0121 0M5 12.5a12 12 0 0114 0M8.5 16.5a7 7 0 017 0M12 20.5h.01" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <!-- Signal -->
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff" stroke="none">
+        <rect x="1" y="15" width="3" height="7" rx="1"/>
+        <rect x="6" y="11" width="3" height="11" rx="1"/>
+        <rect x="11" y="7" width="3" height="15" rx="1"/>
+        <rect x="16" y="3" width="3" height="19" rx="1" opacity="0.35"/>
+      </svg>
+      <span class="status-time">12:35</span>
+    </div>
+
+    <!-- Main -->
+    <div class="receipt-main">
+      <p class="receipt-heading">How would you like to receive your receipt?</p>
+
+      <div class="btn-group">
+        <!-- No receipt -->
+        <button class="rcpt-btn" id="no-receipt-btn">
+          <!-- circle-slash -->
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9"/>
+            <line x1="5.5" y1="5.5" x2="18.5" y2="18.5"/>
+          </svg>
+          No receipt
+        </button>
+
+        <div class="btn-row">
+          <!-- Print -->
+          <button class="rcpt-btn" id="print-btn">
+            <svg viewBox="0 0 24 24">
+              <polyline points="6 9 6 2 18 2 18 9"/>
+              <path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/>
+              <rect x="6" y="14" width="12" height="8"/>
+            </svg>
+            Print
+          </button>
+
+          <!-- Text -->
+          <button class="rcpt-btn" id="text-btn">
+            <svg viewBox="0 0 24 24">
+              <path d="M22 16.92v3a2 2 0 01-2.18 2 19.8 19.8 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.8 19.8 0 01.04 2.18 2 2 0 012 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14v2.92z"/>
+            </svg>
+            Text
+          </button>
+
+          <!-- Email -->
+          <button class="rcpt-btn" id="email-btn">
+            <svg viewBox="0 0 24 24">
+              <rect x="2" y="4" width="20" height="16" rx="2"/>
+              <polyline points="2,4 12,13 22,4"/>
+            </svg>
+            Email
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <p class="legal-footer">
+      The information you provide will be processed pursuant to Toast's
+      <a>Terms of Service</a> and <a>Privacy Statement</a>.
+    </p>
+
+    <!-- Toast accent bar -->
+    <div class="toast-bar"></div>
+
+    <!-- Android nav bar -->
+    <div class="android-nav">
+      <!-- Back -->
+      <button class="nav-btn" aria-label="Back">
+        <svg width="20" height="20" viewBox="0 0 24 24">
+          <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+        </svg>
+      </button>
+      <!-- Home -->
+      <button class="nav-btn" aria-label="Home">
+        <svg width="20" height="20" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2"/>
+        </svg>
+      </button>
+      <!-- Recents -->
+      <button class="nav-btn" aria-label="Recents">
+        <svg width="18" height="18" viewBox="0 0 24 24">
+          <rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="#fff" stroke-width="2"/>
+        </svg>
+      </button>
+    </div>
+
+  </div><!-- /receipt -->
+
+  <!-- ── SCREEN 2: Nice Message ── -->
+  <div class="screen hidden" id="message">
+    <div class="msg-inner">
+      <div class="msg-emoji">&#x1F37B;</div>
+      <div class="msg-heading">You're genuinely awesome.</div>
+      <div class="msg-body">
+        Working behind the bar takes real skill, patience, and heart —
+        and you make it look effortless. You keep the good times rolling,
+        remember everyone's name, and somehow make every person feel like
+        the most important one in the room.<br><br>
+        Seriously — the world's a better place with you in it. Cheers to you. 🍻
+      </div>
+      <div class="msg-from">From your favorite customer 😄</div>
+    </div>
+  </div><!-- /message -->
+
+  <script>
+    // Any button tap flips to the message
+    function showMessage() {
+      document.getElementById('receipt').classList.add('hidden');
+      document.getElementById('message').classList.remove('hidden');
+    }
+
+    document.querySelectorAll('.rcpt-btn, .nav-btn').forEach(el => {
+      el.addEventListener('click', showMessage);
+    });
+  </script>
+
+</body>
+</html>
