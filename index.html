@@ -271,6 +271,16 @@
       </svg>
       <span class="status-time" id="status-time">12:35</span>
     </div>
+    <script>
+      (function tick() {
+        var el = document.getElementById('status-time');
+        var now = new Date();
+        var h = now.getHours() % 12 || 12;
+        var m = now.getMinutes();
+        el.textContent = h + ':' + (m < 10 ? '0' : '') + m;
+        setTimeout(tick, 1000);
+      })();
+    </script>
 
     <!-- Main -->
     <div class="receipt-main">
@@ -368,16 +378,6 @@
   </div><!-- /message -->
 
   <script>
-    // Live clock
-    function updateTime() {
-      const now = new Date();
-      const h = now.getHours() % 12 || 12;
-      const m = String(now.getMinutes()).padStart(2, '0');
-      document.getElementById('status-time').textContent = `${h}:${m}`;
-    }
-    updateTime();
-    setInterval(updateTime, 10000);
-
     // Any button tap flips to the message
     function showMessage() {
       document.getElementById('receipt').classList.add('hidden');
