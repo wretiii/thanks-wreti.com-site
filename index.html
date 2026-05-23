@@ -269,7 +269,7 @@
         <rect x="11" y="7" width="3" height="15" rx="1"/>
         <rect x="16" y="3" width="3" height="19" rx="1" opacity="0.35"/>
       </svg>
-      <span class="status-time">12:35</span>
+      <span class="status-time" id="status-time">12:35</span>
     </div>
 
     <!-- Main -->
@@ -368,6 +368,16 @@
   </div><!-- /message -->
 
   <script>
+    // Live clock
+    function updateTime() {
+      const now = new Date();
+      const h = now.getHours() % 12 || 12;
+      const m = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('status-time').textContent = `${h}:${m}`;
+    }
+    updateTime();
+    setInterval(updateTime, 10000);
+
     // Any button tap flips to the message
     function showMessage() {
       document.getElementById('receipt').classList.add('hidden');
